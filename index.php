@@ -1,24 +1,27 @@
 <?php
 // Assuming you installed from Composer:
 require "vendor/autoload.php";
+
+require "simple_html_dom.php";
 use PHPHtmlParser\Dom;
 
 $dom = new Dom;
-$url = 'http://reg.buu.ac.th/registrar/class_info_1.asp?coursestatus=O00&facultyid=003%A4%B3%D0%C7%D4%B7%C2%D2%C8%D2%CA%B5%C3%EC&maxrow=5000&acadyear=2559&semester=3&CAMPUSID=1&LEVELID=&coursecode=*&coursename=&cmd=2';
+
+$url = 'http://reg.buu.ac.th/registrar/class_info_1.asp?coursestatus=O00&facultyid=003%A4%B3%D0%C7%D4%B7%C2%D2%C8%D2%CA%B5%C3%EC&maxrow=50&acadyear=2559&semester=3&CAMPUSID=1&LEVELID=&coursecode=*&coursename=&cmd=2';
 $dom->loadFromUrl($url);
 
 $contents = $dom->find('tr.normaldetail');
+$courseArray = [];
 foreach ($contents as $content)
 {
-    
+    $courseObj = [];
     $tds = $content->find('td');
-    $url2  = 'http://reg.buu.ac.th/registrar/'.$tds[1]->find('a')->getAttribute('href');
-    $dom->loadFromUrl($url2);
-    
-    echo $tds[1]->find('a')->innerHtml." | ";
-    echo $dom->find('tr.headerDetail')[1]->find('td')[1]->innerHtml." | "; //courseName
-    echo "\n";
 
+    $url2  = 'http://reg.buu.ac.th/registrar/'.$tds[1]->find('a')->getAttribute('href');
+    $dom2 = new simple_html_dom();
+    $dom2->load_file($url2);
+    $courseObj['courseCode'] =  $tds[1]->find('a')->innerHtml;
+    $courseObj['courseName']  = $dom2->find('table[class="normaldetail"]')[0]->find('tr')[1]->find('td')[1]->plaintext; //courseName
     //teacher
     $lis  = $tds[2]->find('li');
     $teachers = [];
@@ -29,43 +32,17 @@ foreach ($contents as $content)
     }
     $tds[2]->find('font')->delete();
     //endteacher
+    $courseObj['courseNameEng']  = removeNoise($tds[2]->innerHtml,['<br />']); //courseNameEng
+    $section = explode(' ',$tds[3]->innerHtml);//crepit(period)
+    $periods = explode('-',$section[1]);
+    $courseObj['credit'] = $section[0];
+    $courseObj['period1'] = substr($periods[0],1);
+    $courseObj['period2'] = $periods[1];
+    $courseObj['period3'] = substr($periods[2],0,-1);
+    $courseObj['section']  = removeNoise($tds[5]->innerHtml,['&nbsp;']); // group
+    $courseObj['enrollseat']  = removeNoise($tds[7]->innerHtml,['&nbsp;']); //enrollseat
 
-    echo removeNoise($tds[2]->innerHtml,['<br />'])." | "; //courseNameEng
-    echo $tds[3]->innerHtml." | ";//crepit(period)
-    echo removeNoise($tds[5]->innerHtml,['&nbsp;'])." | "; // group
-    echo removeNoise($tds[7]->innerHtml,['&nbsp;'])." | "; //enrollseat
-
-    $studyType = null;
-    $urlCourse = '';
-    echo "\n*****************************\n";
-    echo $dom;
-    echo "\n*****************************\n";
-    foreach($dom->find('tr[bgcolor=#F5F5F5]') as $index => $sec){
-        
-        $group = removeNoise($sec->find('td')[1]->innerHtml,['<b>','</b>','&nbsp;']);
-        /*if($group == ''){
-            $group = removeNoise($dom->find('tr[bgcolor=#F5F5F5]')[$index+1]->find('td')[1]->innerHtml,['<b>','</b>','&nbsp;']);
-        }*/
-        echo "group = ".$group;
-        /*
-        if($group == removeNoise($tds[5]->innerHtml,['&nbsp;']) ){
-            echo ($index+1).":".$group." time:".$sec->find('td')[3]->innerHtml." ".$sec->find('td')[4]->innerHtml." ".$sec->find('td')[5]->innerHtml."\n";
-        }*/
-        
-        /*if(removeNoise($sec->find('td')[1]->innerHtml,['<b>','</b>','&nbsp;']) == removeNoise($tds[5]->innerHtml,['&nbsp;']) ){
-            $studyType = $sec->find('td')[7]->innerHtml;
-            echo $sec->find('td')[3];
-           /* if($sec->find('td')[3]->getAttribute('colspan')=='5') $urlCourse = $sec->find('td')[9];
-            else $urlCourse = $sec->find('td')[12];
-        }*/
-    }
-    echo (($studyType == 'C')?'Lecture':($studyType == 'L')?'Lab':'').'|';
-    echo "\n url:".$urlCourse."\n";
     
-    foreach($teachers as $teacher){
-        echo $teacher."\n";
-    }
-    echo "\n\n";
     $times = removeNoise($tds[4]->innerHtml,
                                          [
                                          '<font face="tahoma" size="1" color="#A00000">',
@@ -75,12 +52,39 @@ foreach ($contents as $content)
                                          ]);
     $times = splitTime($times);
     foreach($times as $time){
-        echo $time."\n";
+        $time = explode("##",$time);
+        $time[1] = explode('-',$time[1]);
+        $courseObj['times'][] = ['day'=>$time[0],'startTime'=>$time[1][0],'finishTime'=>$time[1][1],'room'=>$time[2]];
     }
-    echo "\n";
-    echo "#####################################################################################################################################################################################\n\n";
+    $actual_group = "";
+    $levelName='';
+    foreach($dom2->find('table[class="normaldetail"]')[1]->find('tr[bgcolor=#F5F5F5],tr[bgcolor=#F5f5f5],tr[bgcolor=#FFFFF0]') as  $sec){
+        if($sec->bgcolor == '#FFFFF0'){
+            $levelName =  $sec->find('td')[1]->find('font')[0]->plaintext;
+            continue;
+        }
+        $group = removeNoise($sec->find('td')[1]->plaintext,['<b>','</b>','&nbsp;']);
+        if($group != ''){
+            $actual_group = intval($group);
+        }
+        if($actual_group == removeNoise($tds[5]->innerHtml,['&nbsp;'])){
+            if(count($sec->find('td[colspan=5]'))==0){
+                foreach($courseObj['times'] as & $time){
+                    $courseObj['levelName'] =$levelName;
+                    if($time['startTime'].'-'.$time['finishTime'] == $sec->find('td')[4]->plaintext){
+                        $time ['studyType'] = (($sec->find('td')[7]->plaintext == 'C')?'Lecture':($sec->find('td')[7]->plaintext == 'L')?'Lab':'');
+                        break;
+                    }
+                }
+                break;   
+            }
+        }
+        
+    }
+    $courseObj['teachers'] = $teachers;
+    $courseArray[]= $courseObj;
 }
-
+print_r($courseArray);
 function explode_new($text,$suflixs){
     $text = preg_replace($suflixs, "|", $text);
     $text = explode("|",$text);
@@ -97,7 +101,9 @@ function removeNoise($text,$noises){
     return $text;
 }
 function splitTeacher($teachers){
-    return explode("<li>",$teachers);
+    $teachers = explode("<li>",$teachers);
+    array_splice($teachers,0,1);
+    return $teachers;
 }
 function splitTime($times){
     $times = str_replace("</u>","|",$times);

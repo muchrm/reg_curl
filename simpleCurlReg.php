@@ -2,36 +2,41 @@
 require "simple_html_dom.php";
 // Create DOM from URL or file
 $dom = new simple_html_dom();
-$url = 'http://reg.buu.ac.th/registrar/class_info_1.asp?coursestatus=O00&facultyid=003%A4%B3%D0%C7%D4%B7%C2%D2%C8%D2%CA%B5%C3%EC&maxrow=5000&acadyear=2559&semester=3&CAMPUSID=1&LEVELID=&coursecode=*&coursename=&cmd=2';
+$url = 'http://reg.buu.ac.th/registrar/class_info_1.asp?coursestatus=O00&facultyid=003%A4%B3%D0%C7%D4%B7%C2%D2%C8%D2%CA%B5%C3%EC&maxrow=50&acadyear=2559&semester=3&CAMPUSID=1&LEVELID=&coursecode=*&coursename=&cmd=2';
 $dom->load_file($url);
 
 
-$contents = $dom->find('tr[class=normaldetail]');
-foreach ($contents as $content)
-{
+$contents = $dom->find('table[cellspacing=1]')[0]->find('tr');
+for($i = 3;$i<count($contents)-1;$i++){
+    $content = $contents[$i];
     
-    echo $content->find('td[bgcolor=#F0F0F5]',1)->innerHtml;
-    /*
-    echo removeNoise($content->find('td',2)->innerHtml,['<br />'])." | "; //courseNameEng
-    echo $content->find('td',3)->innerHtml." | ";//crepit(period)
-    echo removeNoise($content->find('td',5)->innerHtml,['&nbsp;'])." | "; // group
-    echo removeNoise($content->find('td',7)->innerHtml,['&nbsp;'])." | "; //enrollseat
-    echo "\n\n";
-    $times = removeNoise($content->find('td',4)->innerHtml,
-                                         [
-                                         '<font face="tahoma" size="1" color="#A00000">',
-                                         '<font face="tahoma" size="1" color="#808080">',
-                                         '<font face="tahoma" size="1" color="#5080E0">',
-                                         '</font>','<br />','<b>'
-                                         ]);
-    $times = splitTime($times);
-    foreach($times as $time){
-        echo $time."\n";
+    $class = $content->find('td');
+    if(count($class)==0){
+        echo $content;
+        $content = fixdom($content);
+        $class = $content->find('td');
+    }
+    echo $class[1]."\n";
+    $json = [];
+    //teacher
+    
+    echo $class[2];
+    /*$teachers = [];
+    if(count($lis) > 0){
+        echo $lis[0];
+        $teachers = '<li>'.$lis->innerText;
+        $teachers = removeNoise($teachers,['อาจารย์','MR.','ผู้ช่วยศาสตราจารย์ ดร.','รองศาสตราจารย์ ดร.','ผู้ช่วยศาสตราจารย์','ดร.','</li>']);
+        $teachers = splitTeacher($teachers);
     }*/
-    echo "\n";
-    echo "#####################################################################################################################################################################################\n\n";
+    print_r($teachers);
+    //end teacher
+    echo "\n#######  END  #########\n\n";
 }
-
+function fixdom($content){
+    $html = new simple_html_dom();
+    $html->load(str_replace('<tr><td width=30></td><td colspan=3>[หน้าก่อน]  </td>  </tr>','',$content->outertext));
+    return  $html;
+}
 function explode_new($text,$suflixs){
     $text = preg_replace($suflixs, "|", $text);
     $text = explode("|",$text);
