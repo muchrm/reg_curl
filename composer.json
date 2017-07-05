@@ -1,0 +1,12 @@
+{
+    "name": "muchrm/proj",
+    "authors": [
+        {
+            "name": "Pongpanot Chuaysakun",
+            "email": "muchrm.me@gmail.com"
+        }
+    ],
+    "require": {
+        "paquettg/php-html-parser": "^1.7"
+    }
+}
