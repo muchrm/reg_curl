@@ -8,27 +8,27 @@ $results = run(2560,2);
 
 $results = preprocessCourses($results);
 
-// foreach($results as &$result){
-//     foreach($result['teacher'] as &$teacher){
-//         $tmpTeacher = $teacher;
-//         $teacher = json_decode(json_encode($collection->findOne(['officerName'=>$teacher['officerName'],'officerSurname'=>$teacher['officerSurname']])),true);
-//         if($teacher){
-//             $teacher['money'] = 0;
-//             unset($teacher['_id']);
-//             unset($teacher['updated_at']);
-//         }else{
-//             echo "case:teacher";
-//             var_dump($tmpTeacher);
-//         }
-//     }
-//     foreach($result['enrollSeats'] as &$enrollSeat){
-//         $enrollSeat['teacher'] = arrayMultiColumn($result['teacher'],['officerCode']);
-//     }
-// }
-print_r(json_encode($results));
-// $collection = (new MongoDB\Client)->workteach->TeachLectureLab;
-// $insertManyResult = $collection->insertMany($results);
-// printf("Inserted %d document(s)\n", $insertManyResult->getInsertedCount());
+foreach($results as &$result){
+    foreach($result['teacher'] as &$teacher){
+        $tmpTeacher = $teacher;
+        $teacher = json_decode(json_encode($collection->findOne(['officerName'=>$teacher['officerName'],'officerSurname'=>$teacher['officerSurname']])),true);
+        if($teacher){
+            $teacher['money'] = 0;
+            unset($teacher['_id']);
+            unset($teacher['updated_at']);
+        }else{
+            echo "case:teacher";
+            var_dump($tmpTeacher);
+        }
+    }
+    foreach($result['enrollSeats'] as &$enrollSeat){
+        $enrollSeat['teacher'] = arrayMultiColumn($result['teacher'],['officerCode']);
+    }
+}
+// print_r(json_encode($results));
+$collection = (new MongoDB\Client)->workteach->TeachLectureLab;
+$insertManyResult = $collection->insertMany($results);
+printf("Inserted %d document(s)\n", $insertManyResult->getInsertedCount());
 function run($year,$semester){
     $dom = new Dom;
 
