@@ -357,7 +357,7 @@ function arrayMultiColumn($arrays,$column){
         $columns = [];
         foreach($column as $key){
             if(!isset($array[$key])){
-                echo "case:levelName:".$key;
+                echo "case:arrayMultiColumn:".$key."\n";
                 var_dump($arrays);
             }
             $columns[$key] = $array[$key]??'';
