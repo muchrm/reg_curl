@@ -3,49 +3,32 @@
 require "vendor/autoload.php";
 require "simple_html_dom.php";
 use PHPHtmlParser\Dom;
-$collection = (new MongoDB\Client)->reg->Teacher;
+// $collection = (new MongoDB\Client)->reg->Teacher;
 $results = run(2560,2);
 
 $results = preprocessCourses($results);
-$courseType = [302101,
-                    302102,
-                    303111,
-                    306106,
-                    306107,
-                    308120,
-                    308150,
-                    309101,
-                    309102,
-                    309103,
-                    30110159,
-                    30210159,
-                    30311159,
-                    30610659,
-                    30815059,
-                    30910159,
-                    30910359,
-                  ];
-foreach($results as &$result){
-    foreach($result['teacher'] as &$teacher){
-        $tmpTeacher = $teacher;
-        $teacher = json_decode(json_encode($collection->findOne(['officerName'=>$teacher['officerName'],'officerSurname'=>$teacher['officerSurname']])),true);
-        if($teacher){
-            $teacher['money'] = 0;
-            unset($teacher['_id']);
-            unset($teacher['updated_at']);
-        }else{
-            echo "case:teacher";
-            var_dump($tmpTeacher);
-        }
-    }
-    foreach($result['enrollSeats'] as &$enrollSeat){
-        $enrollSeat['teacher'] = arrayMultiColumn($result['teacher'],['officerCode']);
-    }
-}
-// print_r(json_encode($results));
-$collection = (new MongoDB\Client)->workteach->TeachLectureLab;
-$insertManyResult = $collection->insertMany($results);
-printf("Inserted %d document(s)\n", $insertManyResult->getInsertedCount());
+
+// foreach($results as &$result){
+//     foreach($result['teacher'] as &$teacher){
+//         $tmpTeacher = $teacher;
+//         $teacher = json_decode(json_encode($collection->findOne(['officerName'=>$teacher['officerName'],'officerSurname'=>$teacher['officerSurname']])),true);
+//         if($teacher){
+//             $teacher['money'] = 0;
+//             unset($teacher['_id']);
+//             unset($teacher['updated_at']);
+//         }else{
+//             echo "case:teacher";
+//             var_dump($tmpTeacher);
+//         }
+//     }
+//     foreach($result['enrollSeats'] as &$enrollSeat){
+//         $enrollSeat['teacher'] = arrayMultiColumn($result['teacher'],['officerCode']);
+//     }
+// }
+print_r(json_encode($results));
+// $collection = (new MongoDB\Client)->workteach->TeachLectureLab;
+// $insertManyResult = $collection->insertMany($results);
+// printf("Inserted %d document(s)\n", $insertManyResult->getInsertedCount());
 function run($year,$semester){
     $dom = new Dom;
 
@@ -260,6 +243,7 @@ function get_string_between($string, $start, $end){
 }
 
 function preprocessCourses($courses){
+    
     $courseArray = [];
     foreach($courses as $course){
         foreach($course['times'] as $time){
@@ -329,6 +313,33 @@ function preprocessCourses($courses){
         unset($course['time']);
 
         $courses[] = $course;
+    }
+    $courseType = [
+        302101,
+        302102,
+        303111,
+        306106,
+        306107,
+        308120,
+        308150,
+        309101,
+        309102,
+        309103,
+        30110159,
+        30210159,
+        30311159,
+        30610659,
+        30815059,
+        30910159,
+        30910359,
+    ];
+
+    foreach ($courses as &$course) {
+        foreach ($course['courseCodes'] as $courseCode) {
+            if(in_array($courseCode,$courseType)){
+                $course['courseType'] = 'ศึกษาทั่วไป';
+            }
+        }
     }
     return $courses;
 }
