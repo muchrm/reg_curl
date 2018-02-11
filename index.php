@@ -3,7 +3,7 @@
 require "vendor/autoload.php";
 require "simple_html_dom.php";
 use PHPHtmlParser\Dom;
-// $collection = (new MongoDB\Client)->reg->Teacher;
+$collection = (new MongoDB\Client)->reg->Teacher;
 $results = run(2560,2);
 
 $results = preprocessCourses($results);
