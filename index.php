@@ -4,10 +4,33 @@ require "vendor/autoload.php";
 require "simple_html_dom.php";
 use PHPHtmlParser\Dom;
 $collection = (new MongoDB\Client)->reg->Teacher;
-$results = run(2560,1);
+$results = run(2560,2);
 
 $results = preprocessCourses($results);
+$courseType = [302101,
+                    302102,
+                    303111,
+                    306106,
+                    306107,
+                    308120,
+                    308150,
+                    309101,
+                    309102,
+                    309103,
+                    30110159,
+                    30210159,
+                    30311159,
+                    30610659,
+                    30815059,
+                    30910159,
+                    30910359,
+                  ];
 foreach($results as &$result){
+    foreach($result['coursecodes] as $courseCode){
+        if(in_array($courseCode,$courseType)){
+            $result['courseType'] = 'ศึกษาทั่วไป';
+        }
+    }
     foreach($result['teacher'] as &$teacher){
         $tmpTeacher = $teacher;
         $teacher = json_decode(json_encode($collection->findOne(['officerName'=>$teacher['officerName'],'officerSurname'=>$teacher['officerSurname']])),true);
