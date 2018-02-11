@@ -26,11 +26,6 @@ $courseType = [302101,
                     30910359,
                   ];
 foreach($results as &$result){
-    foreach($result['coursecodes] as $courseCode){
-        if(in_array($courseCode,$courseType)){
-            $result['courseType'] = 'ศึกษาทั่วไป';
-        }
-    }
     foreach($result['teacher'] as &$teacher){
         $tmpTeacher = $teacher;
         $teacher = json_decode(json_encode($collection->findOne(['officerName'=>$teacher['officerName'],'officerSurname'=>$teacher['officerSurname']])),true);
