@@ -1,4 +1,4 @@
-FROM php:7.0.27-fpm-jessie
+FROM php:7.1-fpm
 
 RUN apt-get update && apt-get install -y iputils-ping nano libsasl2-dev
 RUN mkdir -p /usr/local/openssl/include/openssl/ && \
