@@ -3,38 +3,38 @@
 require "vendor/autoload.php";
 require "simple_html_dom.php";
 use PHPHtmlParser\Dom;
-$collection = (new MongoDB\Client)->reg->teachers;
+// $collection = (new MongoDB\Client)->reg->teachers;
 $results = run(2560,2);
 
 $results = preprocessCourses($results);
 
-foreach($results as &$result){
-    // remove some feature
-    unset($result['courseCode']);
-    unset($result['levelId']);
-    unset($result['roomCode']);
-    foreach($result['teacher'] as &$teacher){
-        $tmpTeacher = $teacher;
-        $teacher = json_decode(json_encode($collection->findOne(['officerName'=>$teacher['officerName'],'officerSurname'=>$teacher['officerSurname']])),true);
-        if($teacher){
-            // $teacher['money'] = 0
-            unset($teacher['_id']);
-            unset($teacher['updated_at']);
-        }else{
-            echo "case:teacher";
-            var_dump($tmpTeacher);
-        }
-    }
-    // foreach($result['enrollSeats'] as &$enrollSeat){
-    //    $enrollSeat['teacher'] = arrayMultiColumn($result['teacher'],['officerCode']);
-    // }
+// foreach($results as &$result){
+//     // remove some feature
+//     unset($result['courseCode']);
+//     unset($result['levelId']);
+//     unset($result['roomCode']);
+//     foreach($result['teacher'] as &$teacher){
+//         $tmpTeacher = $teacher;
+//         $teacher = json_decode(json_encode($collection->findOne(['officerName'=>$teacher['officerName'],'officerSurname'=>$teacher['officerSurname']])),true);
+//         if($teacher){
+//             // $teacher['money'] = 0
+//             unset($teacher['_id']);
+//             unset($teacher['updated_at']);
+//         }else{
+//             echo "case:teacher";
+//             var_dump($tmpTeacher);
+//         }
+//     }
+//     // foreach($result['enrollSeats'] as &$enrollSeat){
+//     //    $enrollSeat['teacher'] = arrayMultiColumn($result['teacher'],['officerCode']);
+//     // }
     
-}
-// print_r(json_encode($results));
+// }
+print_r(json_encode($results));
 // print_r($results);
-$collection = (new MongoDB\Client)->mis->workload_workteach_lecture_lab;
-$insertManyResult = $collection->insertMany($results);
-printf("Inserted %d document(s)\n", $insertManyResult->getInsertedCount());
+// $collection = (new MongoDB\Client)->mis->workload_workteach_lecture_lab;
+// $insertManyResult = $collection->insertMany($results);
+// printf("Inserted %d document(s)\n", $insertManyResult->getInsertedCount());
 
 function run($year,$semester){
     $dom = new Dom;
@@ -42,7 +42,6 @@ function run($year,$semester){
     $url = 'http://reg.buu.ac.th/registrar/class_info_1.asp?coursestatus=O00&facultyid=031%A4%B3%D0%CA%CB%E0%C7%AA%C8%D2%CA%B5%C3%EC&maxrow=99999999&acadyear='.$year.'&semester='.$semester.'&CAMPUSID=1&LEVELID=&coursecode=&coursename=*&cmd=2';
 
     $dom->loadFromUrl($url);
-
     $contents = $dom->find('tr.normaldetail');
     $courseArray = [];
     foreach ($contents as $content)

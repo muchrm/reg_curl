@@ -7,7 +7,6 @@
         }
     ],
     "require": {
-        "paquettg/php-html-parser": "^1.7",
-        "mongodb/mongodb":"^1.0.0"
+        "muchrm/php-html-parser": "dev-master"
     }
 }
