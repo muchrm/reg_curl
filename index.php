@@ -119,7 +119,9 @@ function run($year,$semester){
                         // $courseObj['levelName'] = $levelName;
                         $courseObj['degree'] = $degree;
                         $courseObj['levelId'] = degreeNameToId($degree);
-                        if((dateEngToThai($time['day']) == $tmptd[3]->plaintext) && ($time['startTime'].'-'.$time['finishTime'] == $tmptd[4]->plaintext)){
+                        if((dateEngToThai($time['day']) == $tmptd[3]->plaintext) &&
+                           ($time['startTime'].'-'.$time['finishTime'] == $tmptd[4]->plaintext) &&
+                            $time['room']== $tmptd[5]->plaintext){
                             
                             $time ['teachType'] = ($tmptd[7]->plaintext == 'C'?'lecture':($tmptd[7]->plaintext == 'L'?'lab':''));
                             $time ['day'] = dateEngToThaiNoi($time['day']);
